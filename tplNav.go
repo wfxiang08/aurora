@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	kCurrentJobsDelay = "current-jobs-ready"
+	kCurrentJobsDelay  = "current-jobs-ready"
+	kCurrentJobsBuried = "current-jobs-buried"
 )
+
 // getServerStatus render a server stats table.
 func getServerStatus() string {
 	var err error
@@ -83,7 +85,6 @@ func getServerTubes(server string) string {
 	// 对tubes进行排序
 	sort.Strings(tubes)
 
-
 	for _, v := range tubes {
 		tubeStats := &beanstalk.Tube{
 			Conn: bstkConn,
@@ -97,9 +98,10 @@ func getServerTubes(server string) string {
 		}
 		for _, stats := range selfConf.TubeFilters {
 
-
 			if kCurrentJobsDelay == stats && statsMap[stats] != "0" {
 				td.WriteString(`<td style="background-color:#e4470a;color:#ffffff;font-weight:bold;">`)
+			} else if kCurrentJobsBuried == stats && statsMap[stats] != "0" {
+				td.WriteString(`<td style="color:#f00;font-weight:bold;">`)
 			} else {
 				td.WriteString(`<td>`)
 			}
