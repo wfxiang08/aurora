@@ -9,6 +9,9 @@ import (
 	"github.com/Luxurioust/aurora/beanstalk"
 )
 
+const (
+	kCurrentJobsDelay = "current-jobs-ready"
+)
 // getServerStatus render a server stats table.
 func getServerStatus() string {
 	var err error
@@ -59,33 +62,52 @@ func getServerTubes(server string) string {
 	var err error
 	var buf, th, tr, td bytes.Buffer
 	var bstkConn *beanstalk.Conn
+
+	// 展示头部
 	for _, v := range selfConf.TubeFilters {
 		th.WriteString(`<th>`)
 		th.WriteString(v)
 		th.WriteString(`</th>`)
 	}
+
+	// 创建tcp连接
 	if bstkConn, err = beanstalk.Dial("tcp", server); err != nil {
 		buf.WriteString(`<div id="idAllTubes"><section id="summaryTable"><div class="row"><div class="col-sm-12"><table class="table table-striped table-hover"><thead><tr><th>name</th>`)
 		buf.WriteString(th.String())
 		buf.WriteString(`</tr></thead><tbody></tbody></table></div></div></section></div>`)
 		return buf.String()
 	}
+
+	// 创建到Beanstalk的连接
 	tubes, _ := bstkConn.ListTubes()
+	// 对tubes进行排序
 	sort.Strings(tubes)
+
+
 	for _, v := range tubes {
 		tubeStats := &beanstalk.Tube{
 			Conn: bstkConn,
 			Name: v,
 		}
+
+		// 获取tube的统计数据
 		statsMap, err := tubeStats.Stats()
 		if err != nil {
 			continue
 		}
 		for _, stats := range selfConf.TubeFilters {
-			td.WriteString(`<td>`)
+
+
+			if kCurrentJobsDelay == stats && statsMap[stats] != "0" {
+				td.WriteString(`<td style="background-color:#e4470a;color:#ffffff;font-weight:bold;">`)
+			} else {
+				td.WriteString(`<td>`)
+			}
 			td.WriteString(statsMap[stats])
 			td.WriteString(`</td>`)
 		}
+
+		// 准备TR
 		tr.WriteString(`<tr><td><a href="tube?server=`)
 		tr.WriteString(server)
 		tr.WriteString(`&tube=`)
@@ -93,6 +115,8 @@ func getServerTubes(server string) string {
 		tr.WriteString(`">`)
 		tr.WriteString(v)
 		tr.WriteString(`</a></td>`)
+
+		// 输出上面的TD
 		tr.WriteString(td.String())
 		tr.WriteString(`</tr>`)
 		td.Reset()
