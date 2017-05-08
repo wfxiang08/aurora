@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	kCurrentJobsDelay  = "current-jobs-ready"
-	kCurrentJobsBuried = "current-jobs-buried"
+	kCurrentJobsDelay    = "current-jobs-ready"
+	kCurrentJobsBuried   = "current-jobs-buried"
+	kCurrentJobsReserved = "current-jobs-reserved"
 )
 
 // getServerStatus render a server stats table.
@@ -102,6 +103,8 @@ func getServerTubes(server string) string {
 				td.WriteString(`<td style="background-color:#e4470a;color:#ffffff;font-weight:bold;">`)
 			} else if kCurrentJobsBuried == stats && statsMap[stats] != "0" {
 				td.WriteString(`<td style="color:#f00;font-weight:bold;">`)
+			} else if kCurrentJobsReserved == stats && statsMap[stats] != "0" {
+				td.WriteString(`<td style="color:#ff00f1;font-weight:bold;">`)
 			} else {
 				td.WriteString(`<td>`)
 			}
