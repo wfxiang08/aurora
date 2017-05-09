@@ -7,11 +7,12 @@ import (
 	"strconv"
 
 	"github.com/Luxurioust/aurora/beanstalk"
+	"strings"
 )
 
 const (
-	kCurrentJobsDelay    = "current-jobs-ready"
-	kCurrentJobsBuried   = "current-jobs-buried"
+	kCurrentJobsDelay = "current-jobs-ready"
+	kCurrentJobsBuried = "current-jobs-buried"
 	kCurrentJobsReserved = "current-jobs-reserved"
 )
 
@@ -83,10 +84,24 @@ func getServerTubes(server string) string {
 
 	// 创建到Beanstalk的连接
 	tubes, _ := bstkConn.ListTubes()
+
 	// 对tubes进行排序
 	sort.Strings(tubes)
 
+	sortedTubes := make([]string, 0, len(tubes))
 	for _, v := range tubes {
+		if !strings.HasSuffix(v, "_test") {
+			sortedTubes = append(sortedTubes, v)
+		}
+	}
+	// _test 放在后面
+	for _, v := range tubes {
+		if strings.HasSuffix(v, "_test") {
+			sortedTubes = append(sortedTubes, v)
+		}
+	}
+
+	for _, v := range sortedTubes {
 		tubeStats := &beanstalk.Tube{
 			Conn: bstkConn,
 			Name: v,
