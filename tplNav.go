@@ -96,9 +96,12 @@ func getServerTubes(server string) string {
 	}
 	// _test 放在后面
 	for _, v := range tubes {
-		if strings.HasSuffix(v, "_test") || v == "default" {
+		if strings.HasSuffix(v, "_test") {
 			sortedTubes = append(sortedTubes, v)
 		}
+	}
+	if len(sortedTubes) < len(tubes) {
+		sortedTubes = append(sortedTubes, "default")
 	}
 
 	for _, v := range sortedTubes {
